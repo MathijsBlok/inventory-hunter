@@ -40,8 +40,8 @@ class SeleniumDriver:
         try:
             self.driver.get(url)
         except Exception as e:
-            logging.error(f'Exception during request: {e}')
             self.init()
+            raise Exception(f'Exception during request: {e}')
 
         return HttpGetResponse(self.driver.page_source, url)
 
