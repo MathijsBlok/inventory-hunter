@@ -149,9 +149,9 @@ def get_result_type(url):
 
 
 def get_short_name(url):
-    parts = [i for i in url.path.split('/') if i]
-    if parts:
-        return '_'.join(parts)
+    name = str(url)[9:].split('/')[0]
+    if name:
+        return name
     random.seed()
     return f'unknown{random.randrange(100)}'
 
