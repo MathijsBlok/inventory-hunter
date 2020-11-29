@@ -92,6 +92,32 @@ class BolScraper(ScrapeResult):
         return False
 
 
+class IntertoysScraper(ScrapeResult):
+
+    def __init__(self, r):
+        super().__init__(r)
+        sold_out_text = 'Op dit moment is de PlayStation 5 uitverkocht! Houd onze winkels en website dit najaar in de gaten voor alles over de PlayStation 5.'
+        if sold_out_text.lower() not in self.content:
+            self.alert_subject = 'In Stock'
+            self.alert_content = self.url
+
+    def has_phrase(self, phrase):
+        return False
+
+
+class AmazonScraper(ScrapeResult):
+
+    def __init__(self, r):
+        super().__init__(r)
+        sold_out_text = 'momenteel niet verkrijgbaar.'
+        if sold_out_text not in self.content:
+            self.alert_subject = 'In Stock'
+            self.alert_content = self.url
+
+    def has_phrase(self, phrase):
+        return False
+
+
 class GameManiaScraper(ScrapeResult):
 
     def __init__(self, r):
@@ -115,6 +141,10 @@ def get_result_type(url):
         return BolScraper
     elif 'gamemania' in url.netloc:
         return GameManiaScraper
+    elif 'intertoys' in url.netloc:
+        return IntertoysScraper
+    elif 'amazon' in url.netloc:
+        return AmazonScraper
     return GenericScrapeResult
 
 
