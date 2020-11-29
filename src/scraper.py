@@ -1,3 +1,4 @@
+import json
 import locale
 import logging
 import pathlib
@@ -68,8 +69,9 @@ class MediamarktScraper(ScrapeResult):
 
     def __init__(self, r):
         super().__init__(r)
-        tags = self.soup.body.find('span', {'class': 'nostock-label'})
-        if not tags:
+        response = json.loads(self.content)
+        is_available = any([x.get('level') != '4' for x in response.get('availabilities')])
+        if is_available:
             self.alert_subject = 'In Stock'
             self.alert_content = self.url
 
