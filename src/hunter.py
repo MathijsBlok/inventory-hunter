@@ -100,13 +100,6 @@ class Engine:
             else:
                 logging.info(f'{s.name}: now in stock at {current_price}... too expensive')
 
-        elif not currently_in_stock and result.has_phrase('are you a human'):
-
-            logging.error(f'{s.name}: got "are you a human" prompt')
-            self.alerter('Something went wrong',
-                         f'You need to answer this CAPTCHA and restart this script: {result.url}')
-            sys.exit(1)
-
         else:
             logging.info(f'{s.name}: not in stock')
 
