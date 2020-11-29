@@ -109,8 +109,8 @@ class AmazonScraper(ScrapeResult):
 
     def __init__(self, r):
         super().__init__(r)
-        sold_out_text = 'momenteel niet verkrijgbaar.'
-        if sold_out_text not in self.content:
+        tags = self.soup.body.find('span', {'id': 'submit.add-to-cart-announce'})
+        if tags is not None:
             self.alert_subject = 'In Stock'
             self.alert_content = self.url
 
