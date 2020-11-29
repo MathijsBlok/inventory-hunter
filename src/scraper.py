@@ -149,7 +149,7 @@ def get_result_type(url):
 
 
 def get_short_name(url):
-    name = str(url)[9:].split('/')[0]
+    name = str(url)[8:].split('/')[0]
     if name:
         return name
     random.seed()
