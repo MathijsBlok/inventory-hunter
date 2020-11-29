@@ -1,8 +1,8 @@
 import getpass
 import logging
 import os
-import requests
 
+import requests
 from selenium import webdriver
 
 
@@ -14,6 +14,10 @@ class HttpGetResponse:
 
 class SeleniumDriver:
     def __init__(self, timeout):
+        self.timeout = timeout
+        self.init()
+
+    def init(self):
         self.driver = None
 
         driver_path = '/usr/bin/chromedriver'
@@ -26,14 +30,19 @@ class SeleniumDriver:
             options.add_argument('--no-sandbox')  # required if root
 
         self.driver = webdriver.Chrome(driver_path, options=options)
-        self.driver.implicitly_wait(timeout)
+        self.driver.implicitly_wait(self.timeout)
 
     def __del__(self):
         if self.driver is not None:
             self.driver.quit()
 
     def get(self, url):
-        self.driver.get(url)
+        try:
+            self.driver.get(url)
+        except Exception as e:
+            logging.error(f'Exception during request: {e}')
+            self.init()
+
         return HttpGetResponse(self.driver.page_source, url)
 
 
