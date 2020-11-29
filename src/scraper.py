@@ -2,7 +2,6 @@ import locale
 import logging
 import pathlib
 import random
-import re
 
 from bs4 import BeautifulSoup
 
@@ -19,8 +18,11 @@ class ScrapeResult:
     def __bool__(self):
         return bool(self.alert_content)
 
-    def has_phrase(self, phrase):
-        return phrase in self.content
+    def has_phrase(self, phrases):
+        for phrase in phrases:
+            if phrase in self.content:
+                return True
+        return False
 
     def set_price(self, tag):
         if not tag:
@@ -43,138 +45,80 @@ class GenericScrapeResult(ScrapeResult):
         super().__init__(r)
 
         # not perfect but usually good enough
-        if self.has_phrase('add to cart'):
+        if self.has_phrase(['add to cart']):
             self.alert_subject = 'In Stock'
             self.alert_content = self.url
 
 
-class BestBuyScrapeResult(ScrapeResult):
-    def __init__(self, r):
-        raise Exception('Best Buy is not supported yet :(')
+class CoolBlueScraper(ScrapeResult):
 
-
-class BHPhotoScrapeResult(ScrapeResult):
     def __init__(self, r):
         super().__init__(r)
-        alert_subject = 'In Stock'
-        alert_content = ''
+        tags = [t.text for t in self.soup.body.findAll('button', {'class': 'button--order'})]
+        has_match = any('In my shopping cart' in t for t in tags)
+        if has_match:
+            self.alert_subject = 'In Stock'
+            self.alert_content = self.url
 
-        # get name of product
-        tag = self.soup.body.find('div', class_=re.compile('title_.*'))
-        if tag:
-            alert_content += tag.text.strip() + '\n'
-        else:
-            logging.warning(f'missing title: {self.url}')
-
-        # get listed price
-        tag = self.soup.body.find('div', class_=re.compile('pricesContainer_.*'))
-        price_str = self.set_price(tag)
-        if price_str:
-            alert_subject = f'In Stock for {price_str}'
-        else:
-            logging.warning(f'missing price: {self.url}')
-
-        # check for add to cart button
-        tag = self.soup.body.find('button', class_=re.compile('toCartBtn.*'))
-        if tag and 'add to cart' in tag.text.lower():
-            self.alert_subject = alert_subject
-            self.alert_content = f'{alert_content.strip()}\n{self.url}'
+    def has_phrase(self, phrase):
+        return False
 
 
-class MicroCenterScrapeResult(ScrapeResult):
+class MediamarktScraper(ScrapeResult):
+
     def __init__(self, r):
         super().__init__(r)
-        alert_subject = 'In Stock'
-        alert_content = ''
+        tags = self.soup.body.find('span', {'class': 'nostock-label'})
+        if not tags:
+            self.alert_subject = 'In Stock'
+            self.alert_content = self.url
 
-        details = self.soup.body.find('div', id='details', class_='inline')
-        if details:
-
-            # get name of product
-            tag = details.select_one('h1 span')
-            if tag:
-                alert_content += tag.text.strip() + '\n'
-            else:
-                logging.warning(f'missing title: {self.url}')
-
-            # get listed price
-            tag = details.find('div', id='options-pricing')
-            price_str = self.set_price(tag)
-            if price_str:
-                alert_subject = f'In Stock for {price_str}'
-            else:
-                logging.warning(f'missing price: {self.url}')
-
-            # check for add to cart button
-            tag = details.select_one('aside#cart-options form')
-            if tag and 'add to cart' in str(tag).lower():
-                self.alert_subject = alert_subject
-                self.alert_content = f'{alert_content.strip()}\n{self.url}'
-
-        else:
-            logging.warning(f'missing details div: {self.url}')
+    def has_phrase(self, phrase):
+        return False
 
 
-class NeweggScrapeResult(ScrapeResult):
+class BolScraper(ScrapeResult):
+
     def __init__(self, r):
         super().__init__(r)
-        alert_subject = 'In Stock'
-        alert_content = ''
+        tags = self.soup.body.find('div', {'class': 'buy-block__title'})
+        if not tags or tags.text != 'Niet leverbaar':
+            self.alert_subject = 'In Stock'
+            self.alert_content = self.url
 
-        # get name of product
-        tag = self.soup.body.find('h1', class_='product-title')
-        if tag:
-            alert_content += tag.text.strip() + '\n'
-        else:
-            logging.warning(f'missing title: {self.url}')
+    def has_phrase(self, phrase):
+        return False
 
-        buy_box = self.soup.body.find('div', class_='product-buy-box')
-        if buy_box:
 
-            # get listed price
-            tag = buy_box.find('li', class_='price-current')
-            price_str = self.set_price(tag)
-            if price_str:
-                alert_subject = f'In Stock for {price_str}'
-            else:
-                logging.warning(f'missing price: {self.url}')
+class GameManiaScraper(ScrapeResult):
 
-            # check for add to cart button
-            tag = buy_box.find('div', class_='product-buy')
-            if tag:
-                if 'add to cart' in tag.text.lower():
-                    self.alert_subject = alert_subject
-                    self.alert_content = f'{alert_content.strip()}\n{self.url}'
-            else:
-                logging.warning(f'missing add to cart button: {self.url}')
+    def __init__(self, r):
+        super().__init__(r)
+        is_disabled = 'lnk--button--disabled' in self.soup.body.find('div', {'class': 'lnk--addToCart'}).attrs.get(
+            'class')
+        if not is_disabled:
+            self.alert_subject = 'In Stock'
+            self.alert_content = self.url
 
-        else:
-            logging.warning(f'missing buy box: {self.url}')
+    def has_phrase(self, phrase):
+        return False
 
 
 def get_result_type(url):
-    if 'bestbuy' in url.netloc:
-        return BestBuyScrapeResult
-    elif 'bhphoto' in url.netloc:
-        return BHPhotoScrapeResult
-    elif 'microcenter' in url.netloc:
-        return MicroCenterScrapeResult
-    elif 'newegg' in url.netloc:
-        return NeweggScrapeResult
+    if 'coolblue' in url.netloc:
+        return CoolBlueScraper
+    elif 'mediamarkt' in url.netloc:
+        return MediamarktScraper
+    elif 'bol.com' in url.netloc:
+        return BolScraper
+    elif 'gamemania' in url.netloc:
+        return GameManiaScraper
     return GenericScrapeResult
 
 
 def get_short_name(url):
     parts = [i for i in url.path.split('/') if i]
     if parts:
-        if 'bestbuy' in url.netloc:
-            return parts[1]
-        elif 'bhphoto' in url.netloc:
-            return parts[-1].replace('.html', '')
-        elif 'microcenter' in url.netloc:
-            return parts[-1]
-        elif 'newegg' in url.netloc:
-            return parts[0]
         return '_'.join(parts)
     random.seed()
     return f'unknown{random.randrange(100)}'

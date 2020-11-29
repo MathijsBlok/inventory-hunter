@@ -12,9 +12,8 @@ class Alerter:
     def __init__(self, args):
         self.sender = args.email[0]
         self.recipients = args.email
-        self.relay = args.relay
-
-        # self('Testing relay', 'You can delete this message.')
+        self.gmail_user = args.username
+        self.gmail_password = args.password
 
     def __call__(self, subject, content):
         msg = EmailMessage()
@@ -24,12 +23,16 @@ class Alerter:
             msg['Subject'] = subject
         msg['From'] = self.sender
         msg['To'] = ', '.join(self.recipients)
-        with smtplib.SMTP(self.relay) as s:
+
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
             logging.debug(f'sending email: subject: {subject}')
-            s.send_message(msg)
+            server.ehlo()
+            server.login(self.gmail_user, self.gmail_password)
+            server.send_message(msg)
 
 
 class Engine:
+
     def __init__(self, args, config, driver):
         self.alerter = Alerter(args)
         self.refresh_interval = config.refresh_interval

@@ -1,0 +1,8 @@
+---
+refresh_interval: 2 # seconds
+urls:
+  - https://www.coolblue.nl/en/product/713096/sony-playstation-4-pro-1tb.html
+  - https://www.mediamarkt.nl/nl/product/_sony-playstation-4-slim-500-gb-playstation-now-12-maanden-1676540.html
+  - https://www.bol.com/nl/p/sony-playstation-4-slim-console-500gb-dualshock-4-controller/9200000081631702
+  - https://www.gamemania.nl/Consoles/playstation-5/144093_playstation-5-disc-edition
+...

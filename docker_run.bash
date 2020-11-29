@@ -4,24 +4,26 @@ set -e
 
 usage() {
     [ -n "$1" ] && echo "error: $1"
-    echo "usage: $0 -c CONFIG -e EMAIL -r RELAY"
+    echo "usage: $0 -c CONFIG -e EMAIL"
     exit 1
 }
 
 [ $# -eq 0 ] && usage
 
-while getopts c:e:r: arg
+while getopts c:e:u:p: arg
 do
     case "${arg}" in
         c) config=${OPTARG};;
         e) emails+=(${OPTARG});;
-        r) relay=${OPTARG};;
+        u) username=${OPTARG};;
+        p) password=${OPTARG};;
     esac
 done
 
 [ -z "$config" ] && usage "missing config argument"
 [ -z "$emails" ] && usage "missing email argument"
-[ -z "$relay" ] && usage "missing relay argument"
+[ -z "$username" ] && usage "missing username argument"
+[ -z "$password" ] && usage "missing password argument"
 
 [ ! -f "$config" ] && usage "$config does not exist or is not a regular file"
 
@@ -54,7 +56,8 @@ docker run -d \
     -v $config:/config.yaml \
     $image \
     --email ${emails[@]} \
-    --relay $relay
+    --username $username \
+    --password $password
 
 docker_ps_cmd="docker ps -a -f name=$container_name"
 

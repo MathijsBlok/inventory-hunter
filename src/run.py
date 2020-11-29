@@ -7,7 +7,6 @@ from config import parse_config
 from driver import init_driver
 from hunter import hunt
 
-
 # required for price parsing logic
 locale.setlocale(locale.LC_ALL, '')
 
@@ -16,8 +15,9 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('-c', '--config', type=argparse.FileType('r'), default='/config.yaml', help='YAML config file')
     parser.add_argument('-e', '--email', nargs='+', help='recipient email address(es)')
-    parser.add_argument('-r', '--relay', required=True, help='IP address of SMTP relay')
-    parser.add_argument('-v', '--verbose', action='store_true', help='enable verbose logging')
+    parser.add_argument('-v', '--verbose', help='enable verbose logging')
+    parser.add_argument('-u', '--username', help='gmail username')
+    parser.add_argument('-p', '--password', help='gmail password')
     return parser.parse_args()
 
 
