@@ -52,6 +52,7 @@ container_name=${container_name%.yaml}
 
 docker run -d \
     --name $container_name \
+    --always \
     --network host \
     -v $config:/config.yaml \
     $image \
