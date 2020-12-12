@@ -1,5 +1,5 @@
 ---
-refresh_interval: 1 # seconds
+refresh_interval: 20 # seconds
 urls:
   - https://www.coolblue.nl/en/product/865866/playstation-5.html
   - https://www.mediamarkt.nl/nl/market-selector-list-availability.json?catEntryId=6913389
