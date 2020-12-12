@@ -83,8 +83,9 @@ class BolScraper(ScrapeResult):
 
     def __init__(self, r):
         super().__init__(r)
-        tags = self.soup.body.find('div', {'class': 'buy-block__title'})
-        if not tags or tags.text != 'Niet leverbaar':
+        element = self.soup.body.find('a', {'class': 'js_preventable_buy_action'})
+        has_match = element is not None and 'In winkelwagen' in element.text
+        if has_match:
             self.alert_subject = 'In Stock'
             self.alert_content = self.url
 
